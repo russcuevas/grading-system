@@ -3,24 +3,53 @@ session_start();
 include 'database/connection.php';
 
 if (isset($_POST['login-btn'])) {
-    $email = $_POST['email'];
+    $identifier = $_POST['identifier']; // Email or Student ID
     $password = $_POST['password'];
 
-    $stmt = $conn->prepare("SELECT * FROM tbl_teachers WHERE email = ?");
-    $stmt->execute([$email]);
-    $teacher = $stmt->fetch();
+    // Check if input is an email
+    if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+        // Check if user is a teacher
+        $stmt = $conn->prepare("SELECT * FROM tbl_teachers WHERE email = ?");
+        $stmt->execute([$identifier]);
+        $teacher = $stmt->fetch();
 
-    if ($teacher) {
-        if ($password === $teacher['password']) {
+        if ($teacher && $password === $teacher['password']) {
             $_SESSION['teacher_id'] = $teacher['id'];
             $_SESSION['teacher_name'] = $teacher['name'];
             header("Location: teacher/students.php");
             exit();
         }
+
+        // Check if user is a student (using email)
+        $stmt = $conn->prepare("SELECT * FROM tbl_students WHERE email = ?");
+        $stmt->execute([$identifier]);
+        $student = $stmt->fetch();
+
+        if ($student && $password === $student['password']) {
+            $_SESSION['student_id'] = $student['student_id'];
+            $_SESSION['student_name'] = $student['name'];
+            header("Location: mygrades.php");
+            exit();
+        }
+    } elseif (ctype_digit($identifier)) {
+        // If input is a numeric student ID, check students
+        $stmt = $conn->prepare("SELECT * FROM tbl_students WHERE student_id = ?");
+        $stmt->execute([$identifier]);
+        $student = $stmt->fetch();
+
+        if ($student && $password === $student['password']) {
+            $_SESSION['student_id'] = $student['student_id'];
+            $_SESSION['student_name'] = $student['name'];
+            header("Location: mygrades.php");
+            exit();
+        }
     }
-    echo "<script>alert('Invalid email or password!');</script>";
+
+    echo "<script>alert('Invalid email or student ID or password!');</script>";
 }
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -40,8 +69,8 @@ if (isset($_POST['login-btn'])) {
                     <h2 class="text-center mb-4">Login</h2>
                     <form id="loginForm" action="" method="POST" novalidate>
                         <div class="mb-3">
-                            <label for="email" class="form-label">Email Address</label>
-                            <input type="email" class="form-control" name="email" id="email" placeholder="Enter your email" required>
+                            <label for="identifier" class="form-label">Email or Student ID</label>
+                            <input type="text" class="form-control" name="identifier" id="identifier" placeholder="Enter your email or student ID" required>
                         </div>
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
@@ -65,21 +94,19 @@ if (isset($_POST['login-btn'])) {
         $(document).ready(function() {
             $("#loginForm").validate({
                 rules: {
-                    email: {
-                        required: true,
-                        email: true
+                    identifier: {
+                        required: true
                     },
                     password: {
-                        required: true,
+                        required: true
                     }
                 },
                 messages: {
-                    email: {
-                        required: "Please enter your email address",
-                        email: "Please enter a valid email address"
+                    identifier: {
+                        required: "Please enter your email or student ID"
                     },
                     password: {
-                        required: "Please enter your password",
+                        required: "Please enter your password"
                     }
                 },
                 errorElement: 'div',

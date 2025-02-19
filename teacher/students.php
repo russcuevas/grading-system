@@ -36,7 +36,7 @@ $students = $stmt->fetchAll();
 
 <body>
     <h1>Welcome, <?= $_SESSION['teacher_name']; ?></h1>
-    <h2>Section: <?= $section['name']; ?> - <?= $section['section'] ?> (<?= $section['strand']; ?>)</h2>
+    <h2>Advising class: <?= $section['name']; ?> - <?= $section['section'] ?> (<?= $section['strand']; ?>)</h2>
 
     <h3>Students</h3>
     <a href="grades.php">View grades</a><br><br>
