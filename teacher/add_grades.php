@@ -87,8 +87,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['final_grades'])) {
         function calculateGWA() {
             let totalGrades = 0;
             let totalSubjects = 0;
-
-            // Loop through each grade input and sum the values
             const gradeInputs = document.querySelectorAll('.final-grade');
             gradeInputs.forEach(input => {
                 const grade = parseFloat(input.value);
@@ -97,11 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['final_grades'])) {
                     totalSubjects++;
                 }
             });
-
-            // Calculate the GWA
             const gwa = totalSubjects > 0 ? (totalGrades / totalSubjects).toFixed(2) : 0;
-
-            // Display the GWA
             document.getElementById('gwa').textContent = `GWA: ${gwa}`;
         }
     </script>
@@ -139,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['final_grades'])) {
                     <?php foreach ($subjects as $subject): ?>
                         <tr>
                             <td><?= $subject['name']; ?></td>
-                            <td><input type="number" step="0.01" name="final_grades[<?= $subject['id']; ?>]" class="final-grade" required onchange="calculateGWA()"></td>
+                            <td><input type="text" name="final_grades[<?= $subject['id']; ?>]" class="final-grade" required onchange="calculateGWA()"></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
