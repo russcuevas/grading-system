@@ -3,51 +3,45 @@ session_start();
 include 'database/connection.php';
 
 if (isset($_POST['login-btn'])) {
-    $identifier = $_POST['identifier']; // Email or Student ID
+    $identifier = $_POST['identifier'];
     $password = $_POST['password'];
 
-    // Check if input is an email
-    if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
-        // Check if user is a teacher
-        $stmt = $conn->prepare("SELECT * FROM tbl_teachers WHERE email = ?");
-        $stmt->execute([$identifier]);
-        $teacher = $stmt->fetch();
+    try {
+        if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+            $stmt = $conn->prepare("SELECT * FROM tbl_teachers WHERE email = ?");
+            $stmt->execute([$identifier]);
+            $teacher = $stmt->fetch();
 
-        if ($teacher && $password === $teacher['password']) {
-            $_SESSION['teacher_id'] = $teacher['id'];
-            $_SESSION['teacher_name'] = $teacher['name'];
-            header("Location: teacher/students.php");
-            exit();
+            if ($teacher) {
+                if ($password === $teacher['password']) {
+                    $_SESSION['teacher_id'] = $teacher['id'];
+                    $_SESSION['teacher_name'] = $teacher['name'];
+                    header("Location: teacher/students.php");
+                    exit();
+                }
+            }
+        } else {
+            $stmt = $conn->prepare("SELECT * FROM tbl_students WHERE student_id = ?");
+            $stmt->execute([$identifier]);
+            $student = $stmt->fetch();
+
+            if ($student) {
+                if ($password === $student['password']) {
+                    $_SESSION['student_id'] = $student['student_id'];
+                    $_SESSION['student_name'] = $student['name'];
+                    header("Location: mygrades.php");
+                    exit();
+                }
+            }
         }
 
-        // Check if user is a student (using email)
-        $stmt = $conn->prepare("SELECT * FROM tbl_students WHERE email = ?");
-        $stmt->execute([$identifier]);
-        $student = $stmt->fetch();
-
-        if ($student && $password === $student['password']) {
-            $_SESSION['student_id'] = $student['student_id'];
-            $_SESSION['student_name'] = $student['name'];
-            header("Location: mygrades.php");
-            exit();
-        }
-    } elseif (ctype_digit($identifier)) {
-        // If input is a numeric student ID, check students
-        $stmt = $conn->prepare("SELECT * FROM tbl_students WHERE student_id = ?");
-        $stmt->execute([$identifier]);
-        $student = $stmt->fetch();
-
-        if ($student && $password === $student['password']) {
-            $_SESSION['student_id'] = $student['student_id'];
-            $_SESSION['student_name'] = $student['name'];
-            header("Location: mygrades.php");
-            exit();
-        }
+        echo "<script>alert('Incorrect email/id or password');</script>";
+    } catch (PDOException $e) {
+        echo "<script>alert('Database error: " . $e->getMessage() . "');</script>";
     }
-
-    echo "<script>alert('Invalid email or student ID or password!');</script>";
 }
 ?>
+
 
 
 
@@ -66,7 +60,11 @@ if (isset($_POST['login-btn'])) {
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <div class="card shadow-lg p-4">
-                    <h2 class="text-center mb-4">Login</h2>
+                    <div class="text-center mb-4">
+                        <h2 class="d-inline align-middle">LOGIN</h2>
+                        <img src="images/logo.jpg" alt="Logo" style="width: 70px; margin-right: 10px;" class="img-fluid d-inline-block">
+
+                    </div>
                     <form id="loginForm" action="" method="POST" novalidate>
                         <div class="mb-3">
                             <label for="identifier" class="form-label">Email or Student ID</label>
@@ -77,7 +75,7 @@ if (isset($_POST['login-btn'])) {
                             <input type="password" class="form-control" name="password" id="password" placeholder="Enter your password" required>
                         </div>
                         <button type="submit" name="login-btn" class="btn btn-primary w-100">Login</button>
-                        <a href="register.php">Register here</a>
+                        <a href="register.php" style="text-decoration: none;">Register here</a>
                     </form>
                 </div>
             </div>

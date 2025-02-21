@@ -127,7 +127,10 @@ foreach ($existing_grades as $grade) {
 <body>
     <div class="sidebar" id="sidebar">
         <button class="sidebar-toggler btn btn-light" onclick="toggleSidebar()">&#9776;</button>
-        <h4 class="text-center">Dashboard</h4>
+        <div class="text-center mb-4">
+            <img src="../images/logo.jpg" style="width: 100px;" alt="Logo" class="img-fluid rounded-circle">
+            <h4 class="mt-3">Dashboard</h4>
+        </div>
         <hr>
         <a href="students.php">Student List</a>
         <a href="grades.php">Grades List</a>

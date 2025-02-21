@@ -88,7 +88,6 @@ $grades = $stmt->fetchAll();
                             <td>
                                 <?= htmlspecialchars($grade['final_grade']); ?>
                                 <?php
-                                // Only count numeric grades, ignore 'N/A'
                                 if (is_numeric($grade['final_grade'])) {
                                     $total_grades += $grade['final_grade'];
                                     $count_grades++;
@@ -106,14 +105,14 @@ $grades = $stmt->fetchAll();
 
             <tfoot>
                 <tr>
-                    <th>General Weighted Average (GWA)</th>
+                    <th></th>
                     <th>
                         <?php
                         if ($count_grades > 0) {
                             $gwa = round($total_grades / $count_grades, 2);
-                            echo $gwa;
+                            echo "GWA: " . number_format($gwa, 2);
                         } else {
-                            echo "N/A";
+                            echo "GWA: N/A";
                         }
                         ?>
                     </th>
