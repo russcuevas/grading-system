@@ -57,57 +57,137 @@ foreach ($existing_grades as $grade) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= empty($grades_map) ? "Add Grades" : "Update Grades"; ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            min-height: 100vh;
+            background-color: #212529;
+            color: white;
+            padding: 20px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            transition: 0.3s;
+        }
+
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 12px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #495057;
+        }
+
+        .content {
+            margin-left: 260px;
+            flex-grow: 1;
+            padding: 20px;
+        }
+
+        .sidebar-toggler {
+            display: none;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -100%;
+                width: 100%;
+                position: fixed;
+                z-index: 1000;
+            }
+
+            .content {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .sidebar-toggler {
+                display: block;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <h1><?= empty($grades_map) ? "Add Grades" : "Update Grades"; ?> for Student ID: <?= $student_id; ?></h1>
-    <h3>Name: <?= $name; ?></h3>
-    <h4>Strand: <?= $strand; ?></h4>
-    <h4>Section: <?= $section_name; ?></h4>
+    <div class="sidebar" id="sidebar">
+        <button class="sidebar-toggler btn btn-light" onclick="toggleSidebar()">&#9776;</button>
+        <h4 class="text-center">Dashboard</h4>
+        <hr>
+        <a href="students.php">Student List</a>
+        <a href="grades.php">Grades List</a>
+        <a href="logout.php">Logout</a>
+    </div>
 
-    <label for="semester">Select Semester:</label>
-    <select name="semester" id="semester">
-        <option value="1st semester" <?= $semester == '1st semester' ? 'selected' : ''; ?>>1st Semester</option>
-        <option value="2nd semester" <?= $semester == '2nd semester' ? 'selected' : ''; ?>>2nd Semester</option>
-    </select>
+    <div class="content">
+        <button class="btn btn-dark d-md-none" onclick="toggleSidebar()">&#9776; Menu</button>
 
-    <br><br>
+        <h1><?= empty($grades_map) ? "Add Grades" : "Update Grades"; ?> for Student ID: <?= $student_id; ?></h1>
+        <h3>Name: <?= $name; ?></h3>
+        <h4>Strand: <?= $strand; ?></h4>
+        <h4>Section: <?= $section_name; ?></h4>
 
-    <form id="grades-form">
-        <input type="hidden" name="student_id" value="<?= $student_id; ?>">
-        <input type="hidden" id="semester-input" name="semester" value="<?= $semester; ?>"> <!-- ✅ UPDATED -->
-
-        <table border="1">
-            <thead>
-                <tr>
-                    <th>Subject</th>
-                    <th>Final Grade</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($subjects as $subject): ?>
-                    <tr>
-                        <td><?= $subject['name']; ?></td>
-                        <td>
-                            <input type="text" name="final_grades[<?= $subject['id']; ?>]"
-                                class="final-grade" required
-                                value="<?= $grades_map[$subject['id']] ?? ''; ?>">
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+        <label for="semester">Select Semester:</label>
+        <select name="semester" id="semester" class="form-select w-auto">
+            <option value="1st semester" <?= ($semester == '1st semester') ? 'selected' : ''; ?>>1st Semester</option>
+            <option value="2nd semester" <?= ($semester == '2nd semester') ? 'selected' : ''; ?>>2nd Semester</option>
+        </select>
 
         <br>
 
-        <label id="gwa">GWA: 0.00</label><br>
-        <button type="submit" id="submit-btn"><?= empty($grades_map) ? "Add Grades" : "Update Grades"; ?></button>
-    </form>
+        <form id="grades-form">
+            <input type="hidden" name="student_id" value="<?= $student_id; ?>">
+            <input type="hidden" id="semester-input" name="semester" value="<?= $semester; ?>">
 
-    <br>
-    <a href="students.php">Back to Students</a>
+            <table class="table table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Subject</th>
+                        <th>Final Grade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($subjects as $subject) : ?>
+                        <tr>
+                            <td><?= $subject['name']; ?></td>
+                            <td>
+                                <input type="text" name="final_grades[<?= $subject['id']; ?>]"
+                                    class="final-grade form-control" required
+                                    value="<?= $grades_map[$subject['id']] ?? ''; ?>">
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td></td>
+                        <td><label id="gwa" class="fw-bold">GWA: 0.00</label><br></td>
+                    </tr>
+                </tfoot>
+            </table>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+            <br>
+
+            <button type="submit" id="submit-btn" class="btn btn-primary"><?= empty($grades_map) ? "Add Grades" : "Update Grades"; ?></button>
+            <a href="students.php" class="btn btn-secondary">Back to Students</a>
+
+        </form>
+    </div>
 
     <script>
         $(document).ready(function() {
@@ -115,7 +195,6 @@ foreach ($existing_grades as $grade) {
             const gwaLabel = $("#gwa");
             const submitButton = $("#submit-btn");
             const semesterSelect = $("#semester");
-            const semesterInput = $("#semester-input");
 
             function calculateGWA() {
                 let totalGrades = 0;
@@ -148,7 +227,7 @@ foreach ($existing_grades as $grade) {
                         alert(response.message);
                         calculateGWA();
                     },
-                    error: function(xhr, status, error) {
+                    error: function(xhr) {
                         console.error("AJAX Error:", xhr.responseText);
                         alert("An error occurred while saving grades.");
                     },
@@ -161,12 +240,18 @@ foreach ($existing_grades as $grade) {
 
             semesterSelect.on("change", function() {
                 const newSemester = $(this).val();
-                semesterInput.val(newSemester);
-                window.location.href = "add_grades.php?student_id=<?= $student_id; ?>&semester=" + newSemester;
+                window.location.href = `add_grades.php?student_id=<?= $student_id; ?>&semester=` + newSemester;
             });
 
             calculateGWA();
         });
+    </script>
+
+    <script>
+        function toggleSidebar() {
+            let sidebar = document.getElementById('sidebar');
+            sidebar.style.left = sidebar.style.left === "0px" ? "-100%" : "0px";
+        }
     </script>
 </body>
 
