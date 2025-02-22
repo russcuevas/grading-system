@@ -8,7 +8,7 @@ $stmt->execute();
 $sections = $stmt->fetchAll();
 
 if (isset($_POST['register-btn'])) {
-    $name = $_POST['name']; // Added name input
+    $name = $_POST['name'];
     $email = $_POST['email'];
     $password = $_POST['password']; // Not hashed (for now)
 
@@ -21,10 +21,13 @@ if (isset($_POST['register-btn'])) {
         $updateSection = $conn->prepare("UPDATE tbl_sections SET adviser_id = ? WHERE id = ?");
         $updateSection->execute([$teacher_id, $_POST['section_id']]);
 
-        echo "<div class='alert alert-success'>Registration successful! <a href='index.php'>Login here</a></div>";
+        $_SESSION['alert'] = "<div class='alert alert-success'>Registration successful! <a href='index.php'>Login here</a></div>";
     } else {
-        echo "<div class='alert alert-danger'>Registration failed. Try again.</div>";
+        $_SESSION['alert'] = "<div class='alert alert-danger'>Registration failed. Try again.</div>";
     }
+
+    header("Location: register.php");
+    exit();
 }
 ?>
 
@@ -44,6 +47,15 @@ if (isset($_POST['register-btn'])) {
             <div class="col-md-6">
                 <div class="card shadow-lg p-4">
                     <h2 class="text-center mb-4">CLASS ADVISER REGISTRATION</h2>
+
+                    <!-- Display session alert -->
+                    <?php
+                    if (isset($_SESSION['alert'])) {
+                        echo $_SESSION['alert'];
+                        unset($_SESSION['alert']); // Clear alert after displaying
+                    }
+                    ?>
+
                     <form id="registerForm" action="" method="POST" novalidate>
                         <div class="mb-3">
                             <label for="name" class="form-label">Fullname</label>

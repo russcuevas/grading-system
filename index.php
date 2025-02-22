@@ -35,12 +35,22 @@ if (isset($_POST['login-btn'])) {
             }
         }
 
-        echo "<script>alert('Incorrect email/id or password');</script>";
+        $_SESSION['alert'] = [
+            'type' => 'danger',
+            'message' => 'Incorrect email/ID or password.'
+        ];
     } catch (PDOException $e) {
-        echo "<script>alert('Database error: " . $e->getMessage() . "');</script>";
+        $_SESSION['alert'] = [
+            'type' => 'danger',
+            'message' => 'Database error: ' . $e->getMessage()
+        ];
     }
+
+    header("Location: index.php");
+    exit();
 }
 ?>
+
 
 
 
@@ -65,6 +75,15 @@ if (isset($_POST['login-btn'])) {
                         <img src="images/logo.jpg" alt="Logo" style="width: 70px; margin-right: 10px;" class="img-fluid d-inline-block">
 
                     </div>
+
+                    <?php if (isset($_SESSION['alert'])): ?>
+                        <div class="alert alert-<?= $_SESSION['alert']['type']; ?> alert-dismissible fade show" role="alert">
+                            <?= $_SESSION['alert']['message']; ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        <?php unset($_SESSION['alert']); ?>
+                    <?php endif; ?>
+
                     <form id="loginForm" action="" method="POST" novalidate>
                         <div class="mb-3">
                             <label for="identifier" class="form-label">Email or Student ID</label>

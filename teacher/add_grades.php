@@ -16,6 +16,7 @@ if (!$student_id) {
     exit();
 }
 
+// Fetch student details
 $stmt = $conn->prepare("SELECT id, name, section_id FROM tbl_students WHERE student_id = ?");
 $stmt->execute([$student_id]);
 $student = $stmt->fetch();
@@ -29,17 +30,26 @@ $student_id_db = $student['id'];
 $name = $student['name'];
 $section_id = $student['section_id'];
 
-$stmt = $conn->prepare("SELECT strand, section FROM tbl_sections WHERE id = ?");
-$stmt->execute([$section_id]);
+// Fetch section details, ensuring the teacher is assigned as the adviser
+$stmt = $conn->prepare("SELECT name, strand, section FROM tbl_sections WHERE id = ? AND adviser_id = ?");
+$stmt->execute([$section_id, $teacher_id]);
 $section = $stmt->fetch();
 
+if (!$section) {
+    echo "You are not authorized to manage this student's grades.";
+    exit();
+}
+
+$grade_level = $section['name'];
 $strand = $section['strand'];
 $section_name = $section['section'];
 
-$stmt = $conn->prepare("SELECT id, name FROM tbl_subjects WHERE strand = ? AND semester = ?");
-$stmt->execute([$strand, $semester]);
+// Fetch subjects only if they match the teacher's assigned section
+$stmt = $conn->prepare("SELECT id, name FROM tbl_subjects WHERE grade_level = ? AND strand = ? AND semester = ?");
+$stmt->execute([$grade_level, $strand, $semester]);
 $subjects = $stmt->fetchAll();
 
+// Fetch existing grades
 $stmt = $conn->prepare("SELECT subject_id, final_grade FROM tbl_grades WHERE student_id = ? AND semester = ?");
 $stmt->execute([$student_id_db, $semester]);
 $existing_grades = $stmt->fetchAll();
