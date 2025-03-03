@@ -114,7 +114,7 @@ $students = $stmt->fetchAll();
         <button class="sidebar-toggler" onclick="toggleSidebar()">&#9776;</button>
         <div class="text-center mb-4">
             <img src="../images/logo.jpg" style="width: 100px;" alt="Logo" class="img-fluid rounded-circle">
-            <h4 class="mt-3">Dashboard</h4>
+            <h4 class="mt-3">Student Records</h4>
         </div>
         <hr>
         <a href="students.php">Student List</a>
@@ -147,8 +147,8 @@ $students = $stmt->fetchAll();
                             <td><?= $student['student_id']; ?></td>
                             <td><?= $student['name']; ?></td>
                             <td>
-                                <a href="add_grades.php?student_id=<?= $student['student_id']; ?>" class="btn btn-primary">Add Grades</a>
-                                <a href="delete_students.php?student_id=<?= $student['student_id']; ?>" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this student?');">Delete</a>
+                                <a href="add_grades.php?student_id=<?= $student['student_id']; ?>" class="btn btn-primary">ADD GRADES</a>
+                                <a href="delete_students.php?student_id=<?= $student['student_id']; ?>" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this student?');">DELETE STUDENT</a>
                             </td>
 
                         </tr>

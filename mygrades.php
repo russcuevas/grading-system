@@ -38,10 +38,11 @@ $stmt = $conn->prepare("
     SELECT s.name AS subject_name, COALESCE(g.final_grade, 'N/A') AS final_grade
     FROM tbl_subjects s
     LEFT JOIN tbl_grades g ON s.id = g.subject_id AND g.student_id = ? AND g.semester = ?
-    WHERE s.strand = ? AND s.semester = ?
+    WHERE s.grade_level = ? AND s.strand = ? AND s.semester = ?
 ");
-$stmt->execute([$student_id_db, $semester, $strand, $semester]);
+$stmt->execute([$student_id_db, $semester, $grade_level, $strand, $semester]);
 $grades = $stmt->fetchAll();
+
 ?>
 
 <!DOCTYPE html>

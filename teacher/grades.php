@@ -19,9 +19,14 @@ if (!$section) {
 
 $section_id = $section['id'];
 $semester = isset($_GET['semester']) ? $_GET['semester'] : '1st semester';
-$stmt = $conn->prepare("SELECT student_id, name FROM tbl_students WHERE section_id = ?");
-$stmt->execute([$section_id]);
+$stmt = $conn->prepare("SELECT s.id AS student_id, s.name, g.excel_file 
+                        FROM tbl_students s
+                        LEFT JOIN tbl_grades g 
+                        ON s.id = g.student_id AND g.semester = ?
+                        WHERE s.section_id = ?");
+$stmt->execute([$semester, $section_id]);
 $students = $stmt->fetchAll();
+
 ?>
 
 <!DOCTYPE html>
@@ -104,7 +109,7 @@ $students = $stmt->fetchAll();
         <button class="sidebar-toggler btn btn-light" onclick="toggleSidebar()">&#9776;</button>
         <div class="text-center mb-4">
             <img src="../images/logo.jpg" style="width: 100px;" alt="Logo" class="img-fluid rounded-circle">
-            <h4 class="mt-3">Dashboard</h4>
+            <h4 class="mt-3">Student Records</h4>
         </div>
         <hr>
         <a href="students.php">Student List</a>
@@ -130,7 +135,7 @@ $students = $stmt->fetchAll();
                     <tr>
                         <th>Student ID</th>
                         <th>Name</th>
-                        <th>Actions</th>
+                        <th>Grades</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -138,12 +143,17 @@ $students = $stmt->fetchAll();
                         <tr>
                             <td><?= $student['student_id']; ?></td>
                             <td><?= $student['name']; ?></td>
-                            <td><a href="view_grades.php?student_id=<?= $student['student_id']; ?>&semester=<?= $semester; ?>" class="btn btn-primary">View Grades</a>
+                            <td>
+                                <?php if (!empty($student['excel_file'])) : ?>
+                                    <a href="../grades/<?= $student['excel_file']; ?>" target="_blank"><?= $student['excel_file']; ?></a>
+                                <?php else : ?>
+                                    <span class="text-danger" style="font-weight: 600;">NO GRADES UPLOADED</span>
+                                <?php endif; ?>
                             </td>
-
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
+
             </table>
         </div>
     </div>

@@ -49,15 +49,11 @@ $stmt = $conn->prepare("SELECT id, name FROM tbl_subjects WHERE grade_level = ? 
 $stmt->execute([$grade_level, $strand, $semester]);
 $subjects = $stmt->fetchAll();
 
-// Fetch existing grades
-$stmt = $conn->prepare("SELECT subject_id, final_grade FROM tbl_grades WHERE student_id = ? AND semester = ?");
+// Check if grades file exists for the student and semester
+$stmt = $conn->prepare("SELECT excel_file FROM tbl_grades WHERE student_id = ? AND semester = ?");
 $stmt->execute([$student_id_db, $semester]);
-$existing_grades = $stmt->fetchAll();
-
-$grades_map = [];
-foreach ($existing_grades as $grade) {
-    $grades_map[$grade['subject_id']] = $grade['final_grade'];
-}
+$grade_record = $stmt->fetch();
+$existing_file = $grade_record ? $grade_record['excel_file'] : null;
 ?>
 
 <!DOCTYPE html>
@@ -66,7 +62,7 @@ foreach ($existing_grades as $grade) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= empty($grades_map) ? "Add Grades" : "Update Grades"; ?></title>
+    <title><?= $existing_file ? "Update Grades" : "Add Grades"; ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -139,7 +135,7 @@ foreach ($existing_grades as $grade) {
         <button class="sidebar-toggler btn btn-light" onclick="toggleSidebar()">&#9776;</button>
         <div class="text-center mb-4">
             <img src="../images/logo.jpg" style="width: 100px;" alt="Logo" class="img-fluid rounded-circle">
-            <h4 class="mt-3">Dashboard</h4>
+            <h4 class="mt-3">Student Records</h4>
         </div>
         <hr>
         <a href="students.php">Student List</a>
@@ -150,120 +146,48 @@ foreach ($existing_grades as $grade) {
     <div class="content">
         <button class="btn btn-dark d-md-none" onclick="toggleSidebar()">&#9776; Menu</button>
 
-        <h1><?= empty($grades_map) ? "Add Grades" : "Update Grades"; ?> for Student ID: <?= $student_id; ?></h1>
+        <h1><?= $existing_file ? "Update Grades" : "Add Grades"; ?> for Student ID: <?= $student_id; ?></h1>
         <h3>Name: <?= $name; ?></h3>
         <h4>Strand: <?= $strand; ?></h4>
         <h4>Section: <?= $section_name; ?></h4>
 
         <label for="semester">Select Semester:</label>
-        <select name="semester" id="semester" class="form-select w-auto">
+        <select name="semester" id="semester" class="form-select w-auto" onchange="updateSemester()">
             <option value="1st semester" <?= ($semester == '1st semester') ? 'selected' : ''; ?>>1st Semester</option>
             <option value="2nd semester" <?= ($semester == '2nd semester') ? 'selected' : ''; ?>>2nd Semester</option>
         </select>
 
         <br>
-
-        <form id="grades-form">
+        <form id="grades-form" method="POST" action="functions/save_grades.php" enctype="multipart/form-data">
             <input type="hidden" name="student_id" value="<?= $student_id; ?>">
-            <input type="hidden" id="semester-input" name="semester" value="<?= $semester; ?>">
+            <input type="hidden" name="semester" id="selected-semester" value="<?= $semester; ?>">
 
-            <table class="table table-bordered">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Subject</th>
-                        <th>Final Grade</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($subjects as $subject) : ?>
-                        <tr>
-                            <td><?= $subject['name']; ?></td>
-                            <td>
-                                <input type="text" name="final_grades[<?= $subject['id']; ?>]"
-                                    class="final-grade form-control" required
-                                    value="<?= $grades_map[$subject['id']] ?? ''; ?>">
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td></td>
-                        <td><label id="gwa" class="fw-bold">GWA: 0.00</label><br></td>
-                    </tr>
-                </tfoot>
-            </table>
+            <div style="padding: 20px; border: 2px solid black;">
+                <label for="excel_file" class="form-label" style="font-weight: 900;">UPLOAD EXCEL FILE FOR GRADES</label>
+                <input type="file" name="excel_file" id="excel_file" class="form-control" accept=".xls,.xlsx" <?= $existing_file ? "" : "required"; ?>>
+
+                <?php if ($existing_file): ?>
+                    <p>Current File: <a href="../grades/<?= $existing_file; ?>" target="_blank"><?= $existing_file; ?></a></p>
+                <?php endif; ?>
+            </div>
 
             <br>
-
-            <button type="submit" id="submit-btn" class="btn btn-primary"><?= empty($grades_map) ? "Add Grades" : "Update Grades"; ?></button>
+            <button type="submit" class="btn btn-primary"><?= $existing_file ? "Update Grades" : "Upload & Save Grades"; ?></button>
             <a href="students.php" class="btn btn-secondary">Back to Students</a>
-
         </form>
+
     </div>
-
-    <script>
-        $(document).ready(function() {
-            const form = $("#grades-form");
-            const gwaLabel = $("#gwa");
-            const submitButton = $("#submit-btn");
-            const semesterSelect = $("#semester");
-
-            function calculateGWA() {
-                let totalGrades = 0;
-                let totalSubjects = 0;
-                $(".final-grade").each(function() {
-                    const grade = parseFloat($(this).val());
-                    if (!isNaN(grade)) {
-                        totalGrades += grade;
-                        totalSubjects++;
-                    }
-                });
-
-                const gwa = totalSubjects > 0 ? (totalGrades / totalSubjects).toFixed(2) : "0.00";
-                gwaLabel.text(`GWA: ${gwa}`);
-            }
-
-            $(".final-grade").on("input", calculateGWA);
-
-            form.on("submit", function(e) {
-                e.preventDefault();
-                submitButton.text("Saving...");
-                submitButton.prop("disabled", true);
-
-                $.ajax({
-                    url: "functions/save_grades.php",
-                    type: "POST",
-                    data: form.serialize(),
-                    dataType: "json",
-                    success: function(response) {
-                        alert(response.message);
-                        calculateGWA();
-                    },
-                    error: function(xhr) {
-                        console.error("AJAX Error:", xhr.responseText);
-                        alert("An error occurred while saving grades.");
-                    },
-                    complete: function() {
-                        submitButton.text("Save Grades");
-                        submitButton.prop("disabled", false);
-                    }
-                });
-            });
-
-            semesterSelect.on("change", function() {
-                const newSemester = $(this).val();
-                window.location.href = `add_grades.php?student_id=<?= $student_id; ?>&semester=` + newSemester;
-            });
-
-            calculateGWA();
-        });
-    </script>
 
     <script>
         function toggleSidebar() {
             let sidebar = document.getElementById('sidebar');
             sidebar.style.left = sidebar.style.left === "0px" ? "-100%" : "0px";
+        }
+
+        function updateSemester() {
+            let semester = document.getElementById("semester").value;
+            let studentId = "<?= $student_id; ?>";
+            window.location.href = "add_grades.php?student_id=" + studentId + "&semester=" + encodeURIComponent(semester);
         }
     </script>
 </body>
