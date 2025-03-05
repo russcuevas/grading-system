@@ -19,7 +19,7 @@ if (!$section) {
 
 $section_id = $section['id'];
 $semester = isset($_GET['semester']) ? $_GET['semester'] : '1st semester';
-$stmt = $conn->prepare("SELECT s.id AS student_id, s.name, g.excel_file 
+$stmt = $conn->prepare("SELECT s.id AS student_id, s.student_id AS student_number, s.name, g.excel_file 
                         FROM tbl_students s
                         LEFT JOIN tbl_grades g 
                         ON s.id = g.student_id AND g.semester = ?
@@ -141,7 +141,7 @@ $students = $stmt->fetchAll();
                 <tbody>
                     <?php foreach ($students as $student) : ?>
                         <tr>
-                            <td><?= $student['student_id']; ?></td>
+                            <td><?= $student['student_number']; ?></td>
                             <td><?= $student['name']; ?></td>
                             <td>
                                 <?php if (!empty($student['excel_file'])) : ?>

@@ -53,6 +53,7 @@ $grades = $stmt->fetchAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Grades</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body class="bg-light">
@@ -72,7 +73,7 @@ $grades = $stmt->fetchAll();
         <table class="table table-bordered">
             <thead>
                 <tr>
-                    <th>My Excel Grades</th>
+                    <th>MY EXCEL GRADES</th>
                 </tr>
             </thead>
             <tbody id="grades-table">
@@ -80,11 +81,11 @@ $grades = $stmt->fetchAll();
                     <?php foreach ($grades as $grade): ?>
                         <tr>
                             <td>
-                                <?php if (!empty($grade['excel_file'])) : ?>
-                                    <a href="grades/<?= $grade['excel_file']; ?>" target="_blank"><?= $grade['excel_file']; ?></a>
-                                <?php else : ?>
-                                    <span class="text-danger" style="font-weight: 600;">NO FILE</span>
-                                <?php endif; ?>
+                                <?php if (!empty($grade['excel_file'])) : ?>CLICK TO DOWNLOAD GRADES <i class="fa-solid fa-file-excel"></i> -
+                                <a style="text-decoration: none;" href="grades/<?= $grade['excel_file']; ?>" target="_blank"><?= $grade['excel_file']; ?></a>
+                            <?php else : ?>
+                                <span class="text-danger" style="font-weight: 600;">NO FILE</span>
+                            <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
