@@ -136,9 +136,9 @@ $students = $stmt->fetchAll();
             <table id="studentsTable" class="table table-striped table-bordered">
                 <thead class="table-dark">
                     <tr>
-                        <th>Student ID</th>
-                        <th>Name</th>
-                        <th>Actions</th>
+                        <th>STUDENT ID</th>
+                        <th>STUDENT NAME</th>
+                        <th>ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody>

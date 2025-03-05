@@ -8,7 +8,7 @@ if (!isset($_SESSION['student_id'])) {
 }
 
 $student_id = $_SESSION['student_id'];
-$semester = trim($_GET['semester'] ?? '1st semester'); // Trim to prevent extra spaces
+$semester = trim($_GET['semester'] ?? '1st semester');
 
 // Get student details
 $stmt = $conn->prepare("SELECT id, name, section_id FROM tbl_students WHERE student_id = ?");
@@ -20,7 +20,7 @@ if (!$student) {
     exit();
 }
 
-$student_id_db = $student['id']; // This is the actual student ID used in tbl_grades
+$student_id_db = $student['id'];
 $name = $student['name'];
 $section_id = $student['section_id'];
 
@@ -33,15 +33,15 @@ $grade_level = $section['name'];
 $strand = $section['strand'];
 $section_name = $section['section'];
 
-// Fetch subjects and grades
+// Fetch subjects, grades, and Excel file
 $stmt = $conn->prepare("
-    SELECT s.name AS subject_name, COALESCE(g.final_grade, 'N/A') AS final_grade
-    FROM tbl_subjects s
-    LEFT JOIN tbl_grades g ON s.id = g.subject_id AND g.student_id = ? AND g.semester = ?
-    WHERE s.grade_level = ? AND s.strand = ? AND s.semester = ?
+    SELECT excel_file, semester 
+    FROM tbl_grades 
+    WHERE student_id = ? AND semester = ?
 ");
-$stmt->execute([$student_id_db, $semester, $grade_level, $strand, $semester]);
+$stmt->execute([$student_id_db, $semester]);
 $grades = $stmt->fetchAll();
+
 
 ?>
 
@@ -72,54 +72,30 @@ $grades = $stmt->fetchAll();
         <table class="table table-bordered">
             <thead>
                 <tr>
-                    <th>Subject</th>
-                    <th>Final Grade</th>
+                    <th>My Excel Grades</th>
                 </tr>
             </thead>
             <tbody id="grades-table">
-                <?php
-                $total_grades = 0;
-                $count_grades = 0;
-                ?>
-
                 <?php if (count($grades) > 0): ?>
                     <?php foreach ($grades as $grade): ?>
                         <tr>
-                            <td><?= htmlspecialchars($grade['subject_name']); ?></td>
                             <td>
-                                <?= htmlspecialchars($grade['final_grade']); ?>
-                                <?php
-                                if (is_numeric($grade['final_grade'])) {
-                                    $total_grades += $grade['final_grade'];
-                                    $count_grades++;
-                                }
-                                ?>
+                                <?php if (!empty($grade['excel_file'])) : ?>
+                                    <a href="grades/<?= $grade['excel_file']; ?>" target="_blank"><?= $grade['excel_file']; ?></a>
+                                <?php else : ?>
+                                    <span class="text-danger" style="font-weight: 600;">NO FILE</span>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="2" class="text-center">No grades available for this semester.</td>
+                        <td class="text-center">No grades available for this semester.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>
-
-            <tfoot>
-                <tr>
-                    <th></th>
-                    <th>
-                        <?php
-                        if ($count_grades > 0) {
-                            $gwa = round($total_grades / $count_grades, 2);
-                            echo "GWA: " . number_format($gwa, 2);
-                        } else {
-                            echo "GWA: N/A";
-                        }
-                        ?>
-                    </th>
-                </tr>
-            </tfoot>
         </table>
+
 
         <a href="logout.php" class="btn btn-danger">Logout</a>
     </div>
